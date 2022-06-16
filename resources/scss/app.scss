@@ -34,3 +34,30 @@ section.hero {
     color: $pure;
   }
 }
+
+.btn-primary {
+  transition: $smooth;
+  background: $primary;
+  &:hover {
+    background: $primary-hover;
+  }
+}
+
+section.cart {
+  background: $secondary;
+  .amount {
+    color: $primary;
+  }
+}
+button.order-place {
+  background: $primary;
+  transition: $smooth;
+  &:hover {
+    background: $primary-hover;
+  }
+}
+
+section.login {
+  background: $secondary;
+  min-height: calc(100vh - 86px);
+}

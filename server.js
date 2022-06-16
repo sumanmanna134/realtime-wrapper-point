@@ -8,12 +8,22 @@ require('dotenv').config();
 const config = new Config();
 config.load();
 app.use(express.static('public'));
-app.get('/', (req, res) => {
-  res.render('home');
-});
 app.use(expressLayout);
 app.set('views', path.join(__dirname, 'resources/views'));
 app.set('view engine', 'ejs');
+
+app.get('/', (req, res) => {
+  res.render('home');
+});
+app.get('/cart', (req, res) => {
+  res.render('customers/cart');
+});
+app.get('/login', (req, res) => {
+  res.render('auth/login');
+});
+app.get('/register', (req, res) => {
+  res.render('auth/register');
+});
 
 const server = app.listen(config.port, () => {
   console.log(`listening on ${config.port}`);
