@@ -3,28 +3,65 @@ const Config = require('./app/config/config');
 const expressLayout = require('express-ejs-layouts');
 const ejs = require('ejs');
 const path = require('path');
+const session = require('express-session');
+const flash = require('express-flash');
+const { default: mongoose } = require('mongoose');
+const MongoStore = require('connect-mongo');
 const app = express();
 require('dotenv').config();
 const config = new Config();
 config.load();
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+const connection = mongoose.connection;
+connection
+  .once('open', () => {
+    console.log('database connected..');
+  })
+  .on('error', function (err) {
+    console.log(err);
+  });
+
+//session store
+//session config
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URI,
+      client: connection.getClient(),
+      collectionName: 'sessions',
+      dbName: 'wrap',
+      stringify: false,
+      mongoOptions: {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      },
+    }),
+    saveUninitialized: false,
+    cookie: { maxAge: 1000 * 60 * 60 * 24 }, //24 hrs
+  })
+);
+
+app.use(flash());
+
+//layout config
+app.use(express.json());
 app.use(express.static('public'));
+// global middleware
+app.use((req, res, next) => {
+  res.locals.session = req.session;
+  next();
+});
 app.use(expressLayout);
 app.set('views', path.join(__dirname, 'resources/views'));
 app.set('view engine', 'ejs');
-
-app.get('/', (req, res) => {
-  res.render('home');
-});
-app.get('/cart', (req, res) => {
-  res.render('customers/cart');
-});
-app.get('/login', (req, res) => {
-  res.render('auth/login');
-});
-app.get('/register', (req, res) => {
-  res.render('auth/register');
-});
-
+require('./routes/web')(app);
 const server = app.listen(config.port, () => {
   console.log(`listening on ${config.port}`);
 });
