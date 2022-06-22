@@ -5,6 +5,7 @@ const ejs = require('ejs');
 const path = require('path');
 const session = require('express-session');
 const flash = require('express-flash');
+const passport = require('passport');
 const { default: mongoose } = require('mongoose');
 const MongoStore = require('connect-mongo');
 const app = express();
@@ -47,17 +48,28 @@ app.use(
     cookie: { maxAge: 1000 * 60 * 60 * 24 }, //24 hrs
   })
 );
-
+//passport config
+const passportInit = require('./app/config/passport');
+passportInit(passport);
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(flash());
 
+app.use(
+  express.urlencoded({
+    extended: false,
+  })
+);
 //layout config
 app.use(express.json());
 app.use(express.static('public'));
 // global middleware
 app.use((req, res, next) => {
   res.locals.session = req.session;
+  res.locals.user = req.user;
   next();
 });
+
 app.use(expressLayout);
 app.set('views', path.join(__dirname, 'resources/views'));
 app.set('view engine', 'ejs');
